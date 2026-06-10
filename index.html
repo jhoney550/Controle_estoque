@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorveteria Souza - Controle de Estoque</title>
+    <style>
+        :root {
+            --primary-color: #ff7494;
+            --primary-hover: #ff4f76;
+            --sidebar-bg: #2c3e50;
+            --sidebar-text: #ecf0f1;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #dddddd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+        }
+
+        /* TELA DE LOGIN */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: var(--sidebar-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .login-card h2 { margin-bottom: 10px; color: var(--sidebar-bg); }
+        .login-card h3 { margin-bottom: 25px; color: var(--primary-color); }
+        .login-footer { margin-top: 15px; display: flex; justify-content: space-between; font-size: 13px; }
+        .login-footer a { color: var(--primary-color); text-decoration: none; cursor: pointer; }
+
+        /* Menu Lateral */
+        #sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        #sidebar h2 {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #34495e;
+            color: var(--primary-color);
+            font-size: 22px;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: var(--sidebar-text);
+            padding: 15px 20px;
+            text-align: left;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .menu-btn:hover, .menu-btn.active {
+            background-color: #34495e;
+            border-left: 4px solid var(--primary-color);
+            color: #fff;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            background-color: #c0392b;
+            border: none;
+            color: white;
+            padding: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .logout-btn:hover { background-color: #e74c3c; }
+
+        /* Container Principal */
+        #main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+        h1 { margin-bottom: 20px; color: #2c3e50; }
+
+        /* Formulários e Tabelas */
+        .card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group { margin-bottom: 15px; position: relative; }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px; }
+        input:disabled { background-color: #e9ecef; cursor: not-allowed; }
+
+        /* Olho da Senha */
+        .password-container { position: relative; }
+        .toggle-password { position: absolute; right: 12px; top: 38px; cursor: pointer; user-select: none; z-index: 10; }
+        .login-card .toggle-password { top: 35px; }
+
+        /* Botões */
+        .btn-container { margin-top: 20px; display: flex; gap: 10px; }
+        button.btn { padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; transition: 0.2s; width: auto; font-size: 14px; }
+        .btn-block { width: 100% !important; padding: 10px !important; font-size: 14px; }
+        .btn-primary { background-color: #2bec79; color: white; }
+        .btn-primary:hover { background-color: #24d06a; }
+        .btn-danger { background-color: #e74c3c; color: white; }
+        .btn-danger:hover { background-color: #c0392b; }
+        .btn-info { background-color: #3498db; color: white; }
+        .btn-info:hover { background-color: #2980b9; }
+        .btn-secondary { background-color: #95a5a6; color: white; }
+        .btn-secondary:hover { background-color: #7f8c8d; }
+
+        button:disabled { background-color: #ccc !important; cursor: not-allowed !important; }
+
+        /* Abas (Tabs) */
+        .tabs { display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 20px; }
+        .tab-btn { padding: 10px 20px; background: none; border: none; cursor: pointer; font-size: 16px; font-weight: bold; color: #7f8c8d; }
+        .tab-btn.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Tabelas */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th, td { border: 1px solid var(--border-color); padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr.clickable:hover { background-color: #f9f9f9; cursor: pointer; }
+
+        .search-group { display: flex; gap: 5px; }
+        .btn-search { background-color: #f1f1f1; border: 1px solid var(--border-color); padding: 0 15px; cursor: pointer; border-radius: 4px; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 500px; max-height: 80vh; overflow-y: auto; }
+        
+        /* Estilos específicos para a Grid de Relatórios */
+        .report-grid { display: flex; gap: 20px; flex-direction: column; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-card">
+            <h2>Sorveteria Souza</h2>
+            <h3>Controle de Estoque</h3>
+            <div class="form-group" style="text-align: left;">
+                <label>Usuário</label>
+                <input type="text" id="login-username" placeholder="Digite seu usuário">
+            </div>
+            <div class="form-group password-container" style="text-align: left;">
+                <label>Senha</label>
+                <input type="password" id="login-password" placeholder="Digite sua senha">
+                <span class="toggle-password" onclick="togglePasswordVisibility('login-password')">👁️</span>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="efetuarLogin()">Acessar Sistema</button>
+            <div class="login-footer">
+                <a onclick="recuperarSenha()">Esqueci minha senha</a>
+                <span style="color:#7f8c8d; font-size:11px;">Padrão: admin / dbabs</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="sidebar">
+        <h2>Sorveteria Souza</h2>
+        <button class="menu-btn active" id="menu-btn-usuarios" onclick="switchScreen('usuarios')">Cadastro de Usuário</button>
+        <button class="menu-btn" onclick="switchScreen('produtos')">Cadastro de Produto</button>
+        <button class="menu-btn" onclick="switchScreen('entrada')">Tela de Entrada</button>
+        <button class="menu-btn" onclick="switchScreen('saida')">Tela de vendas</button>
+        <button class="menu-btn" onclick="switchScreen('relatorios')">📊 Relatórios de Estoque</button>
+        
+        <button class="logout-btn" onclick="efetuarLogout()">Sair (Logoff)</button>
+    </div>
+
+    <div id="main-content">
+
+        <div id="screen-usuarios" class="screen active">
+            <h1>Cadastro de Usuários</h1>
+            <div class="card">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nome Completo</label>
+                        <input type="text" id="user-nome">
+                    </div>
+                    <div class="form-group">
+                        <label>Nome de Usuário (Login)</label>
+                        <input type="text" id="user-username">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group password-container">
+                        <label>Senha</label>
+                        <input type="password" id="user-senha">
+                        <span class="toggle-password" onclick="togglePasswordVisibility('user-senha')">👁️</span>
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail (Recuperação)</label>
+                        <input type="email" id="user-email">
+                    </div>
+                    <div class="form-group">
+                        <label>Data de Cadastro</label>
+                        <input type="text" id="user-data" disabled>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-info" onclick="novoUsuario()">Incluir</button>
+                    <button class="btn btn-primary" onclick="gravarUsuario()">Gravar</button>
+                    <button class="btn btn-danger" id="btn-user-excluir" onclick="excluirUsuario()">Excluir</button>
+                </div>
+            </div>
+            <h3>Usuários Cadastrados</h3>
+            <table>
+                <thead>
+                    <tr><th>Nome</th><th>Usuário</th><th>E-mail</th><th>Data Cadastro</th></tr>
+                </thead>
+                <tbody id="tbl-usuarios"></tbody>
+            </table>
+        </div>
+
+        <div id="screen-produtos" class="screen">
+            <h1>Cadastro de Produtos</h1>
+            <div class="card">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ID do Produto</label>
+                        <input type="text" id="prod-id">
+                    </div>
+                    <div class="form-group">
+                        <label>Nome do Produto</label>
+                        <input type="text" id="prod-nome">
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="gravarProduto()">Gravar</button>
+                    <button class="btn btn-danger" onclick="excluirProduto()">Excluir</button>
+                </div>
+            </div>
+            <h3>Produtos em Sistema</h3>
+            <table>
+                <thead>
+                    <tr><th>ID do Produto</th><th>Nome do Produto</th></tr>
+                </thead>
+                <tbody id="tbl-produtos"></tbody>
+            </table>
+        </div>
+
+        <div id="screen-entrada" class="screen">
+            <h1>Movimentação de Entrada</h1>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('entrada', 'lista')">Lista</button>
+                <button class="tab-btn" onclick="switchTab('entrada', 'manutencao')">Manutenção</button>
+            </div>
+
+            <div id="entrada-lista" class="tab-content active">
+                <table>
+                    <thead>
+                        <tr><th>Nr. Req</th><th>Data</th><th>Prod ID</th><th>Produto</th><th>Qtd</th><th>Val. Unit</th><th>Val. Total</th></tr>
+                    </thead>
+                    <tbody id="tbl-entrada-lista"></tbody>
+                </table>
+            </div>
+
+            <div id="entrada-manutencao" class="tab-content">
+                <div class="card">
+                    <div class="btn-container" style="margin-bottom:20px; margin-top:0;">
+                        <button class="btn btn-info" id="btn-ent-incluir" onclick="habilitarMovimentacao('entrada', 'incluir')">Incluir</button>
+                        <button class="btn btn-secondary" id="btn-ent-alterar" onclick="habilitarMovimentacao('entrada', 'alterar')">Alterar</button>
+                        <button class="btn btn-danger" id="btn-ent-excluir" onclick="excluirMovimentacao('entrada')">Excluir</button>
+                        <button class="btn btn-secondary" id="btn-ent-cancelar" onclick="cancelarMovimentacao('entrada')" disabled>Cancelar</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nr. Requisição</label>
+                            <input type="text" id="ent-req" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Data de Entrada</label>
+                            <input type="date" id="ent-data" disabled>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Produto (Busca por ID ou Nome + TAB)</label>
+                            <div class="search-group">
+                                <input type="text" id="ent-prod" placeholder="Digite e aperte TAB..." onkeydown="handleProductTab(event, 'entrada')" disabled>
+                                <button class="btn-search" id="btn-search-ent" onclick="abrirModalProdutos('entrada')" disabled>🔍</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Quantidade</label>
+                            <input type="number" id="ent-qtd" oninput="calcularValores('entrada', 'qtd')" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Unitário</label>
+                            <input type="number" step="0.01" id="ent-vlr-unit" oninput="calcularValores('entrada', 'unit')" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Total</label>
+                            <input type="number" step="0.01" id="ent-vlr-total" oninput="calcularValores('entrada', 'total')" disabled>
+                        </div>
+                    </div>
+                    <div class="btn-container">
+                        <button class="btn btn-primary" id="btn-ent-gravar" onclick="gravarMovimentacao('entrada')" disabled>Gravar Lançamento</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-saida" class="screen">
+            <h1>Movimentação de Saída</h1>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('saida', 'lista')">Lista</button>
+                <button class="tab-btn" onclick="switchTab('saida', 'manutencao')">Manutenção</button>
+            </div>
+
+            <div id="saida-lista" class="tab-content active">
+                <table>
+                    <thead>
+                        <tr><th>Nr. Req</th><th>Data</th><th>Prod ID</th><th>Produto</th><th>Qtd</th><th>Val. Unit</th><th>Val. Total</th></tr>
+                    </thead>
+                    <tbody id="tbl-saida-lista"></tbody>
+                </table>
+            </div>
+
+            <div id="saida-manutencao" class="tab-content">
+                <div class="card">
+                    <div class="btn-container" style="margin-bottom:20px; margin-top:0;">
+                        <button class="btn btn-info" id="btn-sai-incluir" onclick="habilitarMovimentacao('saida', 'incluir')">Incluir</button>
+                        <button class="btn btn-secondary" id="btn-sai-alterar" onclick="habilitarMovimentacao('saida', 'alterar')">Alterar</button>
+                        <button class="btn btn-danger" id="btn-sai-excluir" onclick="excluirMovimentacao('saida')">Excluir</button>
+                        <button class="btn btn-secondary" id="btn-sai-cancelar" onclick="cancelarMovimentacao('saida')" disabled>Cancelar</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nr. Requisição</label>
+                            <input type="text" id="sai-req" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Data de Saída</label>
+                            <input type="date" id="sai-data" disabled>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Produto (Busca por ID ou Nome + TAB)</label>
+                            <div class="search-group">
+                                <input type="text" id="sai-prod" placeholder="Digite e aperte TAB..." onkeydown="handleProductTab(event, 'saida')" disabled>
+                                <button class="btn-search" id="btn-search-sai" onclick="abrirModalProdutos('saida')" disabled>🔍</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Quantidade</label>
+                            <input type="text" id="sai-qtd" oninput="validarNumeroSimples(this); calcularValores('saida', 'qtd')" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Unitário</label>
+                            <input type="text" id="sai-vlr-unit" oninput="validarNumeroSimples(this); calcularValores('saida', 'unit')" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Total</label>
+                            <input type="text" id="sai-vlr-total" oninput="validarNumeroSimples(this); calcularValores('saida', 'total')" disabled>
+                        </div>
+                    </div>
+                    <div class="btn-container">
+                        <button class="btn btn-primary" id="btn-sai-gravar" onclick="gravarMovimentacao('saida')" disabled>Gravar Lançamento</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-relatorios" class="screen">
+            <h1>Relatórios Estatísticos de Estoque</h1>
+            <div class="report-grid">
+                
+                <div class="card">
+                    <h2 style="color: #2980b9; margin-bottom:10px;">📥 Acumulado de Entradas por Produto</h2>
+                    <p style="font-size:14px; color:#7f8c8d; margin-bottom:15px;">Abaixo lista o somatório total de itens comprados/armazenados no estoque.</p>
+                    <table>
+                        <thead>
+                            <tr><th>ID</th><th>Nome do Produto</th><th>Total de Entradas (Qtd)</th><th>Investimento Total</th></tr>
+                        </thead>
+                        <tbody id="tbl-relatorio-entradas"></tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h2 style="color: var(--primary-hover); margin-bottom:10px;">📤 Acumulado de Saídas por Produto</h2>
+                    <p style="font-size:14px; color:#7f8c8d; margin-bottom:15px;">Abaixo lista o somatório total de itens vendidos/retirados do estoque.</p>
+                    <table>
+                        <thead>
+                            <tr><th>ID</th><th>Nome do Produto</th><th>Total de Saídas (Qtd)</th><th>Faturamento/Custo Total</th></tr>
+                        </thead>
+                        <tbody id="tbl-relatorio-saidas"></tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div id="modal-produtos" class="modal">
+        <div class="modal-content">
+            <h3>Selecione o Produto</h3>
+            <hr><br>
+            <table style="margin-top:0;">
+                <thead><tr><th>ID</th><th>Nome</th></tr></thead>
+                <tbody id="tbl-modal-produtos"></tbody>
+            </table>
+            <br>
+            <button class="btn btn-secondary" onclick="fecharModalProdutos()">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        // FUNÇÃO DE AJUDA: Criptografa strings simples usando o padrão SHA-256
+        function gerarHashSenha(senhaLimpa) {
+            if(!senhaLimpa) return "";
+            return CryptoJS.SHA256(senhaLimpa).toString();
+        }
+        // ==========================================
+        // FUNÇÕES DE CRIPTOGRAFIA DE SENHA
+        // ==========================================
+        async function criptografarSenha(senha) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(senha);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        async function validarSenha(senhaPlana, senhaHash) {
+            const hash = await criptografarSenha(senhaPlana);
+            return hash === senhaHash;
+        }
+
+        // Inicialização do Banco de Dados Local
+        // Verifica se a lista não existe. Se não existir, cria o padrão.
+        (async () => {
+            if(!localStorage.getItem('usuarios')) {
+                const senhaAdmin = await criptografarSenha('dbabs');
+                localStorage.setItem('usuarios', JSON.stringify([{
+                    nome: "Administrador",
+                    username: "admin",
+                    senha: senhaAdmin,
+                    email: "admin@souza.com",
+                    data: new Date().toLocaleDateString('pt-BR')
+                }]));
+            } else {
+                // SE JÁ EXISTIR: Força a atualização da senha do admin (apenas se ainda estiver em plano texto)
+                let usuariosExistentes = JSON.parse(localStorage.getItem('usuarios'));
+                let adminIndex = usuariosExistentes.findIndex(u => u.username === 'admin');
+                
+                if (adminIndex !== -1 && usuariosExistentes[adminIndex].senha === 'dbabs') {
+                    const senhaAdmin = await criptografarSenha('dbabs');
+                    usuariosExistentes[adminIndex].senha = senhaAdmin;
+                    localStorage.setItem('usuarios', JSON.stringify(usuariosExistentes));
+                }
+            }
+        })()
+
+        if(!localStorage.getItem('produtos')) {
+            localStorage.setItem('produtos', JSON.stringify([
+                {id: "1", nome: "Sorvete de Chocolate 2L"},
+                {id: "2", nome: "Picolé de Morango"}
+            ]));
+        }
+        if(!localStorage.getItem('entradas')) localStorage.setItem('entradas', JSON.stringify([]));
+        if(!localStorage.getItem('saidas')) localStorage.setItem('saidas', JSON.stringify([]));
+
+        let modoMovimentacao = ""; 
+        let contextoAtual = ""; 
+        let produtoSelecionadoAtual = null;
+
+        // ==========================================
+        // LÓGICA DE AUTENTICAÇÃO
+        // ==========================================
+       // ==========================================
+// LÓGICA DE AUTENTICAÇÃO (LOGIN / LOGOUT)
+// ==========================================
+function efetuarLogin() {
+    const userInp = document.getElementById('login-username').value.trim();
+    const passInp = document.getElementById('login-password').value;
+    
+    const usuarios = JSON.parse(localStorage.getItem('usuarios'));
+    
+    // Busca o usuário correspondente cruzando os dados
+    const usuarioValido = usuarios.find(u => u.username === userInp && u.senha === passInp);
+
+    if(usuarioValido) {
+        // Esconde a tela de login
+        document.getElementById('login-screen').style.display = 'none';
+        
+        // Reseta campos do formulário de login
+        document.getElementById('login-username').value = "";
+        document.getElementById('login-password').value = "";
+        
+        // Inicializa a tela padrão de usuários
+        renderUsuarios();
+    } else {
+        alert("Usuário ou senha incorretos! Tente novamente.");
+    }
+}
+
+// NOVA FUNÇÃO: Escuta o teclado no campo de senha da tela de login
+document.getElementById('login-password').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Evita comportamentos padrão do navegador
+        efetuarLogin(); // Executa o clique automático
+    }
+});
+
+        function efetuarLogout() {
+            document.getElementById('login-screen').style.display = 'flex';
+            switchScreen('usuarios');
+            document.getElementById('menu-btn-usuarios').classList.add('active');
+        }
+
+        function recuperarSenha() {
+            const userInp = prompt("Digite o 'Nome de Usuário' que deseja recuperar:");
+            if(!userInp) return;
+            const usuarios = JSON.parse(localStorage.getItem('usuarios'));
+            const usuarioEncontrado = usuarios.find(u => u.username === userInp.trim());
+
+            if(usuarioEncontrado) {
+                alert(`Instruções enviadas para o e-mail:\n👉 ${usuarioEncontrado.email}\n\n(Simulação: Senha atual: ${usuarioEncontrado.senha})`);
+            } else {
+                alert("Usuário não encontrado!");
+            }
+        }
+
+        // Alternância de Telas (Menu Lateral)
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+            
+            const targetScreen = document.getElementById(`screen-${screenId}`);
+            if(targetScreen) targetScreen.classList.add('active');
+            
+            if(event && event.target && event.target.classList.contains('menu-btn')) {
+                event.target.classList.add('active');
+            }
+            
+            if(screenId === 'usuarios') renderUsuarios();
+            if(screenId === 'produtos') renderProdutos();
+            if(screenId === 'entrada') { renderMovimentacaoLista('entrada'); cancelarMovimentacao('entrada'); }
+            if(screenId === 'saida') { renderMovimentacaoLista('saida'); cancelarMovimentacao('saida'); }
+            if(screenId === 'relatorios') gerenciarRelatorios(); // Dispara o cruzamento dinâmico
+        }
+
+        // Alternância de Abas
+        function switchTab(screen, tabName) {
+            document.querySelectorAll(`#screen-${screen} .tab-btn`).forEach(b => b.classList.remove('active'));
+            document.querySelectorAll(`#screen-${screen} .tab-content`).forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(`${screen}-${tabName}`).classList.add('active');
+        }
+
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === "password" ? "text" : "password";
+        }
+
+        function validarNumeroSimples(input) {
+            input.value = input.value.replace(/[^0-9.]/g, '');
+        }
+
+        // ==========================================
+        // GERAÇÃO DOS DOIS RELATÓRIOS (CRUZAMENTO DE DADOS)
+        // ==========================================
+        function gerenciarRelatorios() {
+            const produtos = JSON.parse(localStorage.getItem('produtos'));
+            const entradas = JSON.parse(localStorage.getItem('entradas'));
+            const saidas = JSON.parse(localStorage.getItem('saidas'));
+
+            const tbodyEntradas = document.getElementById('tbl-relatorio-entradas');
+            const tbodySaidas = document.getElementById('tbl-relatorio-saidas');
+            
+            tbodyEntradas.innerHTML = "";
+            tbodySaidas.innerHTML = "";
+
+            // Monta dados para cada produto cadastrado
+            produtos.forEach(prod => {
+                // Filtra as entradas e saídas que batem com o ID desse produto
+                let totalEntradaQtd = 0;
+                let totalEntradaValor = 0;
+                entradas.filter(e => e.prodId === prod.id).forEach(e => {
+                    totalEntradaQtd += parseFloat(e.qtd || 0);
+                    totalEntradaValor += parseFloat(e.vlrTotal || 0);
+                });
+
+                let totalSaidaQtd = 0;
+                let totalSaidaValor = 0;
+                saidas.filter(s => s.prodId === prod.id).forEach(s => {
+                    totalSaidaQtd += parseFloat(s.qtd || 0);
+                    totalSaidaValor += parseFloat(s.vlrTotal || 0);
+                });
+
+                // Injeta linha no relatório de Entradas
+                let trEnt = document.createElement('tr');
+                trEnt.innerHTML = `<td><b>${prod.id}</b></td><td>${prod.nome}</td><td>${totalEntradaQtd}</td><td>R$ ${totalEntradaValor.toFixed(2)}</td>`;
+                tbodyEntradas.appendChild(trEnt);
+
+                // Injeta linha no relatório de Saídas
+                let trSai = document.createElement('tr');
+                trSai.innerHTML = `<td><b>${prod.id}</b></td><td>${prod.nome}</td><td>${totalSaidaQtd}</td><td>R$ ${totalSaidaValor.toFixed(2)}</td>`;
+                tbodySaidas.appendChild(trSai);
+            });
+        }
+
+        // ==========================================
+        // LÓGICA DE USUÁRIOS
+        // ==========================================
+        let usuarioSelecionadoEdit = null;
+
+        function renderUsuarios() {
+            const users = JSON.parse(localStorage.getItem('usuarios'));
+            const tbody = document.getElementById('tbl-usuarios');
+            tbody.innerHTML = "";
+            users.forEach(u => {
+                let tr = document.createElement('tr');
+                tr.className = "clickable";
+                tr.innerHTML = `<td>${u.nome}</td><td>${u.username}</td><td>${u.email}</td><td>${u.data}</td>`;
+                tr.onclick = () => carregarUsuarioCampos(u);
+                tbody.appendChild(tr);
+            });
+        }
+
+        function novoUsuario() {
+            usuarioSelecionadoEdit = null;
+            document.getElementById('user-nome').value = "";
+            document.getElementById('user-username').value = "";
+            document.getElementById('user-username').disabled = false;
+            document.getElementById('user-senha').value = "";
+            document.getElementById('user-email').value = "";
+            document.getElementById('user-data').value = new Date().toLocaleDateString('pt-BR');
+            document.getElementById('btn-user-excluir').disabled = true;
+        }
+
+        function carregarUsuarioCampos(user) {
+            usuarioSelecionadoEdit = user.username;
+            document.getElementById('user-nome').value = user.nome;
+            document.getElementById('user-username').value = user.username;
+            document.getElementById('user-username').disabled = true; 
+            document.getElementById('user-senha').value = user.senha; 
+            document.getElementById('user-email').value = user.email;
+            document.getElementById('user-data').value = user.data;
+            document.getElementById('btn-user-excluir').disabled = (user.username === 'admin'); 
+        }
+
+        function gravarUsuario() {
+            let users = JSON.parse(localStorage.getItem('usuarios'));
+            let username = document.getElementById('user-username').value.trim();
+            
+            if(!username || !document.getElementById('user-senha').value) {
+                alert("Usuário e senha são obrigatórios!");
+                return;
+            }
+
+            if(usuarioSelecionadoEdit) { 
+                let uIdx = users.findIndex(u => u.username === username);
+                users[uIdx].nome = document.getElementById('user-nome').value;
+                users[uIdx].senha = document.getElementById('user-senha').value; 
+                users[uIdx].email = document.getElementById('user-email').value;
+            } else { 
+                if(users.some(u => u.username === username)) { alert("Este usuário já existe!"); return; }
+                users.push({
+                    nome: document.getElementById('user-nome').value,
+                    username: username,
+                    senha: document.getElementById('user-senha').value,
+                    email: document.getElementById('user-email').value,
+                    data: document.getElementById('user-data').value
+                });
+            }
+            localStorage.setItem('usuarios', JSON.stringify(users));
+            renderUsuarios();
+            novoUsuario();
+            alert("Usuário salvo com sucesso!");
+        }
+
+        function excluirUsuario() {
+            if(!usuarioSelecionadoEdit) return;
+            if(usuarioSelecionadoEdit === 'admin') { alert("Impossível deletar o usuário admin!"); return; }
+            let users = JSON.parse(localStorage.getItem('usuarios'));
+            users = users.filter(u => u.username !== usuarioSelecionadoEdit);
+            localStorage.setItem('usuarios', JSON.stringify(users));
+            renderUsuarios();
+            novoUsuario();
+        }
+
+        // ==========================================
+        // LÓGICA DE PRODUTOS
+        // ==========================================
+        let produtoSelecionadoEdit = null;
+
+        function renderProdutos() {
+            const prods = JSON.parse(localStorage.getItem('produtos'));
+            const tbody = document.getElementById('tbl-produtos');
+            tbody.innerHTML = "";
+            prods.forEach(p => {
+                let tr = document.createElement('tr');
+                tr.className = "clickable";
+                tr.innerHTML = `<td>${p.id}</td><td>${p.nome}</td>`;
+                tr.onclick = () => {
+                    produtoSelecionadoEdit = p.id;
+                    document.getElementById('prod-id').value = p.id;
+                    document.getElementById('prod-nome').value = p.nome;
+                };
+                tbody.appendChild(tr);
+            });
+        }
+
+        function gravarProduto() {
+            let prods = JSON.parse(localStorage.getItem('produtos'));
+            let id = document.getElementById('prod-id').value.trim();
+            let nome = document.getElementById('prod-nome').value.trim();
+
+            if(!id || !nome) { alert("Preencha todos os campos do produto!"); return; }
+
+            let index = prods.findIndex(p => p.id === id);
+            if(index >= 0) {
+                prods[index].nome = nome; 
+            } else {
+                prods.push({id, nome}); 
+            }
+            localStorage.setItem('produtos', JSON.stringify(prods));
+            renderProdutos();
+            document.getElementById('prod-id').value = "";
+            document.getElementById('prod-nome').value = "";
+        }
+
+        function excluirProduto() {
+            if(!produtoSelecionadoEdit) return;
+            let prods = JSON.parse(localStorage.getItem('produtos'));
+            prods = prods.filter(p => p.id !== produtoSelecionadoEdit);
+            localStorage.setItem('produtos', JSON.stringify(prods));
+            renderProdutos();
+            document.getElementById('prod-id').value = "";
+            document.getElementById('prod-nome').value = "";
+            produtoSelecionadoEdit = null;
+        }
+
+        // ==========================================
+        // LÓGICA DE MOVIMENTAÇÃO (ENTRADA E SAÍDA)
+        // ==========================================
+        function renderMovimentacaoLista(tipo) {
+            let dados = JSON.parse(localStorage.getItem(tipo === 'entrada' ? 'entradas' : 'saidas'));
+            let tbody = document.getElementById(`tbl-${tipo}-lista`);
+            tbody.innerHTML = "";
+            dados.forEach(d => {
+                let tr = document.createElement('tr');
+                tr.className = "clickable";
+                tr.innerHTML = `<td>${d.requisicao}</td><td>${d.data}</td><td>${d.prodId}</td><td>${d.prodNome}</td><td>${d.qtd}</td><td>R$ ${parseFloat(d.vlrUnit).toFixed(2)}</td><td>R$ ${parseFloat(d.vlrTotal).toFixed(2)}</td>`;
+                tr.onclick = () => carregarMovimentacaoParaManutencao(tipo, d);
+                tbody.appendChild(tr);
+            });
+        }
+
+        function proximaRequisicao(tipo) {
+            let storageKey = tipo === 'entrada' ? 'entradas' : 'saidas';
+            let movimentacoes = JSON.parse(localStorage.getItem(storageKey));
+            if(!movimentacoes || movimentacoes.length === 0) return '1';
+            let maior = movimentacoes.reduce((max, item) => {
+                let num = parseInt(item.requisicao, 10);
+                return isNaN(num) ? max : Math.max(max, num);
+            }, 0);
+            return String(maior + 1);
+        }
+
+        function habilitarMovimentacao(tipo, modo) {
+            modoMovimentacao = modo;
+            let prefix = tipo === 'entrada' ? 'ent' : 'sai';
+
+            document.getElementById(`btn-${prefix}-incluir`).disabled = (modo === 'incluir');
+            document.getElementById(`btn-${prefix}-alterar`).disabled = (modo === 'incluir');
+            document.getElementById(`btn-${prefix}-excluir`).disabled = (modo === 'incluir');
+            document.getElementById(`btn-${prefix}-cancelar`).disabled = false;
+            document.getElementById(`btn-${prefix}-gravar`).disabled = false;
+
+            document.getElementById(`${prefix}-req`).disabled = (modo === 'alterar');
+            document.getElementById(`${prefix}-data`).disabled = false;
+            document.getElementById(`${prefix}-prod`).disabled = false;
+            document.getElementById(`btn-search-${prefix}`).disabled = false;
+            document.getElementById(`${prefix}-qtd`).disabled = false;
+            document.getElementById(`${prefix}-vlr-unit`).disabled = false;
+            document.getElementById(`${prefix}-vlr-total`).disabled = false;
+
+            if(modo === 'incluir') {
+                limparCamposMovimentacao(tipo);
+                document.getElementById(`${prefix}-data`).value = new Date().toISOString().split('T')[0];
+                document.getElementById(`${prefix}-req`).value = proximaRequisicao(tipo);
+                document.getElementById(`${prefix}-req`).disabled = true;
+            }
+        }
+
+        function cancelarMovimentacao(tipo) {
+            let prefix = tipo === 'entrada' ? 'ent' : 'sai';
+            modoMovimentacao = "";
+            produtoSelecionadoAtual = null;
+
+            document.getElementById(`btn-${prefix}-incluir`).disabled = false;
+            document.getElementById(`btn-${prefix}-alterar`).disabled = false;
+            document.getElementById(`btn-${prefix}-excluir`).disabled = false;
+            document.getElementById(`btn-${prefix}-cancelar`).disabled = true;
+            document.getElementById(`btn-${prefix}-gravar`).disabled = true;
+
+            document.getElementById(`${prefix}-req`).disabled = true;
+            document.getElementById(`${prefix}-data`).disabled = true;
+            document.getElementById(`${prefix}-prod`).disabled = true;
+            document.getElementById(`btn-search-${prefix}`).disabled = true;
+            document.getElementById(`${prefix}-qtd`).disabled = true;
+            document.getElementById(`${prefix}-vlr-unit`).disabled = true;
+            document.getElementById(`${prefix}-vlr-total`).disabled = true;
+
+            limparCamposMovimentacao(tipo);
+        }
+
+        function limparCamposMovimentacao(tipo) {
+            let prefix = tipo === 'entrada' ? 'ent' : 'sai';
+            document.getElementById(`${prefix}-req`).value = "";
+            document.getElementById(`${prefix}-data`).value = "";
+            document.getElementById(`${prefix}-prod`).value = "";
+            document.getElementById(`${prefix}-qtd`).value = "";
+            document.getElementById(`${prefix}-vlr-unit`).value = "";
+            document.getElementById(`${prefix}-vlr-total`).value = "";
+        }
+
+        function carregarMovimentacaoParaManutencao(tipo, item) {
+            switchTab(tipo, 'manutencao');
+            let prefix = tipo === 'entrada' ? 'ent' : 'sai';
+            
+            document.getElementById(`${prefix}-req`).value = item.requisicao;
+            document.getElementById(`${prefix}-data`).value = item.data;
+            document.getElementById(`${prefix}-prod`).value = `[${item.prodId}] ${item.prodNome}`;
+            document.getElementById(`${prefix}-qtd`).value = item.qtd;
+            document.getElementById(`${prefix}-vlr-unit`).value = item.vlrUnit;
+            document.getElementById(`${prefix}-vlr-total`).value = item.vlrTotal;
+
+            produtoSelecionadoAtual = { id: item.prodId, nome: item.prodNome };
+            
+            document.getElementById(`btn-${prefix}-incluir`).disabled = false;
+            document.getElementById(`btn-${prefix}-alterar`).disabled = false;
+            document.getElementById(`btn-${prefix}-excluir`).disabled = false;
+            document.getElementById(`btn-${prefix}-cancelar`).disabled = false;
+        }
+
+        function calcularValores(tipo, origem) {
+            let prefix = tipo === 'entrada' ? 'ent' : 'sai';
+            let qtd = parseFloat(document.getElementById(`${prefix}-qtd`).value) || 0;
+            let unit = parseFloat(document.getElementById(`${prefix}-vlr-unit`).value) || 0;
+            let total = parseFloat(document.getElementById(`${prefix}-vlr-total`).value) || 0;
+
+            if(origem === 'qtd' || origem === 'unit') {
+                if(qtd > 0 && unit > 0) {
+                    document.getElementById(`${prefix}-vlr-total`).value = (qtd * unit).toFixed(2);
+                }
+            } else if (origem === 'total') {
+                if(total > 0 && qtd > 0) {
+                    document.getElementById(`${prefix}-vlr-unit`).value = (total / qtd).toFixed(2);
+                }
+            }
+        }
+
+        function handleProductTab(event, tipo) {
+            if(event.key === "Tab") {
+                event.preventDefault();
+                let valorBusca = event.target.value.toLowerCase().trim();
+                let produtos = JSON.parse(localStorage.getItem('produtos'));
+                let achados = produtos.filter(p => p.id === valorBusca || p.nome.toLowerCase().includes(valorBusca));
+
+                if(achados.length === 1) {
+                    vincularProdutoMovimentacao(tipo, achados[0]);
+                } else {
+                    abrirModalProdutos(tipo, achados);
+                }
+            }
+        }
+
+        function abrirModalProdutos(tipo, listaFiltrada = null) {
+            contextoAtual = tipo;
+            let produtos = listaFiltrada ? listaFiltrada : JSON.parse(localStorage.getItem('produtos'));
+            let tbody = document.getElementById('tbl-modal-produtos');
+            tbody.innerHTML = "";
+
+            produtos.forEach(p => {
+                let tr = document.createElement('tr');
+                tr.className = "clickable";
+                tr.innerHTML = `<td>${p.id}</td><td>${p.nome}</td>`;
+                tr.onclick = () => {
+                    vincularProdutoMovimentacao(contextoAtual, p);
+                    fecharModalProdutos();
+                };
+                tbody.appendChild(tr);
+            });
+            document.getElementById('modal-produtos').style.display = 'flex';
+        }
+
+        function fecharModalProdutos() {
+            document.getElementById('modal-produtos').style.display = 'none';
+        }
+
+        function vincularProdutoMovimentacao(tipo, produto) {
+            let prefix = tipo === 'entrada' ? 'ent' : 'sai';
+            produtoSelecionadoAtual = produto;
+            document.getElementById(`${prefix}-prod`).value = `[${produto.id}] ${produto.nome}`;
+        }
+
+        function gravarMovimentacao(tipo) {
+            let prefix = tipo === 'entrada' ? 'ent' : 'sai';
+            let storageKey = tipo === 'entrada' ? 'entradas' : 'saidas';
+            
+            let req = document.getElementById(`${prefix}-req`).value.trim();
+            let data = document.getElementById(`${prefix}-data`).value;
+            let qtd = document.getElementById(`${prefix}-qtd`).value;
+            let vlrUnit = document.getElementById(`${prefix}-vlr-unit`).value;
+            let vlrTotal = document.getElementById(`${prefix}-vlr-total`).value;
+
+            if(!req || !data || !produtoSelecionadoAtual || !qtd || !vlrTotal) {
+                alert("Por favor, preencha todos os campos obrigatórios.");
+                return;
+            }
+
+            let movimentacoes = JSON.parse(localStorage.getItem(storageKey));
+            let novoLancamento = {
+                requisicao: req, data: data,
+                prodId: produtoSelecionadoAtual.id, prodNome: produtoSelecionadoAtual.nome,
+                qtd: qtd, vlrUnit: vlrUnit, vlrTotal: vlrTotal
+            };
+
+            if(modoMovimentacao === 'incluir') {
+                if(movimentacoes.some(m => m.requisicao === req)) {
+                    alert("Já existe um lançamento com esta Requisição!");
+                    return;
+                }
+                movimentacoes.push(novoLancamento);
+            } else {
+                let idx = movimentacoes.findIndex(m => m.requisicao === req);
+                if(idx >= 0) movimentacoes[idx] = novoLancamento;
+            }
+
+            localStorage.setItem(storageKey, JSON.stringify(movimentacoes));
+            renderMovimentacaoLista(tipo);
+            cancelarMovimentacao(tipo);
+            switchTab(tipo, 'lista');
+            alert("Movimentação registrada com sucesso!");
+        }
+
+        function excluirMovimentacao(tipo) {
+            let prefix = tipo === 'entrada' ? 'ent' : 'sai';
+            let storageKey = tipo === 'entrada' ? 'entradas' : 'saidas';
+            let req = document.getElementById(`${prefix}-req`).value;
+
+            if(!req) return;
+            if(confirm("Tem certeza que deseja excluir esta movimentação?")) {
+                let movimentacoes = JSON.parse(localStorage.getItem(storageKey));
+                movimentacoes = movimentacoes.filter(m => m.requisicao !== req);
+                localStorage.setItem(storageKey, JSON.stringify(movimentacoes));
+                renderMovimentacaoLista(tipo);
+                cancelarMovimentacao(tipo);
+                switchTab(tipo, 'lista');
+            }
+        }
+    </script>
+</body>
+</html>
